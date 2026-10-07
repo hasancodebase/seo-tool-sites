@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://technicalseochecker.pages.dev/sitemap.xml
