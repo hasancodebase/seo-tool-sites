@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Methodology and Limits - Media Provenance Inspector</title><meta name="description" content="How the checks work, how strong each one is, and what this site cannot tell you."><link rel="canonical" href="https://mediaprovenance.pages.dev/methodology-and-limits">
+<link rel="stylesheet" href="/style.css"></head><body>
+<header><a class="brand" href="/">Media Provenance Inspector</a><nav><a href="/media-provenance-inspector">Media inspector</a><a href="/text-artifact-scanner">Text scanner</a><a href="/methodology-and-limits">Methodology and limits</a></nav></header>
+<main><h1>Methodology and limits</h1><p class="lead">What each check does, how strong the evidence is, and where it fails. Version 0.1.</p>
+<h2>Principles</h2><ul><li>Report only what can be read from the file or text itself.</li><li>Show indicators, never a verdict or a probability of AI involvement.</li><li>Say clearly when a check found nothing, and what that does not prove.</li><li>Analyse everything in the browser, so evidence is not sent to a server.</li></ul>
+<h2>How strong is each check?</h2>
+<h3>SHA-256 hash</h3><p>Strong for one purpose: showing that two copies of a file are identical. It says nothing about whether the content is real.</p>
+<h3>Content Credentials (C2PA)</h3><p>Strong when the signature is valid, because the manifest is cryptographically signed by the tool or device that made it. This version only detects and reads the manifest. It does not validate the signature, so validate it with an official verifier before relying on it. A missing manifest means very little, because most files have none and many platforms strip them.</p>
+<h3>XMP and IPTC digital source type</h3><p>Useful when it states that content is AI-generated or AI-composited. These fields are plain text inside the file and can be edited or removed by anyone.</p>
+<h3>PNG generation parameters</h3><p>Some AI image tools write their prompt and settings into PNG files. When present they are a strong sign of how the image was made. They are removed when the image is re-saved, converted, or shared through most platforms.</p>
+<h3>EXIF and video container fields</h3><p>Camera, software and date fields help build a timeline, but every one of them can be edited. A date inside a file is a claim, not a fact.</p>
+<h3>Tool names found inside the file</h3><p>A weak indicator. A name can appear by accident, can be added on purpose, and shows that software touched the file, not what it changed.</p>
+<h3>Text markers</h3><p>Hidden characters and chatbot artifacts are observable, but they can come from many sources and are easy to remove. They cannot establish who or what wrote a text.</p>
+<h2>What this site does not do</h2><ul><li>It does not analyse pixels, frames, audio or writing style to guess whether content is synthetic.</li><li>It does not identify which AI model or tool produced a file unless the file says so.</li><li>It does not provide legal, forensic or expert opinion.</li><li>It has not been validated against a benchmark dataset, and no accuracy figures are claimed.</li></ul>
+<h2>Handling evidence</h2><ul><li>Keep the original file unchanged and work on a copy.</li><li>Record the SHA-256 hash of the original and of every copy.</li><li>Save the JSON report next to the file, and note the tool version and date.</li><li>Do not rely on this site alone for court or formal proceedings. Use an accredited forensic examiner.</li></ul>
+<h2>Privacy</h2><p>Files and text are processed in your browser and are not uploaded or stored by this site. The site is static, so there is no server-side analysis.</p></main>
+<footer>Media Provenance Inspector is an independent tool. It is not affiliated with or endorsed by any government or law-enforcement body. Results are indicators, not proof. Files and text are analysed in your browser and are not uploaded.</footer>
+</body></html>
