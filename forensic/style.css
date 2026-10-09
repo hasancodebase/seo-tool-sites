@@ -37,3 +37,4 @@ input[type=file]{width:100%;padding:14px;border:2px dashed var(--ink);background
 .mono{font-family:ui-monospace,Consolas,monospace}
 .actions{margin-top:18px}.actions button{margin-right:8px}
 @media print{header,form,.actions,footer,.noprint{display:none}body{background:#fff}}
+.row.unk{border-color:var(--soft)}.row.unk b{color:var(--soft)}

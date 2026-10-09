@@ -2,7 +2,7 @@ const $ = s => document.querySelector(s);
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const row = (s, l, d) => ({ s, l, d });
 const sec = h => ({ h });
-const LABEL = { ok: "None found", warn: "Indicator", bad: "Declared AI", info: "Info" };
+const LABEL = { ok: "None found", warn: "Indicator", bad: "Declared AI", info: "Info", unk: "Inconclusive" };
 const VERSION = "0.1";
 const draw = r => {
   if (r.h) return el("h3", "sec", r.h);
@@ -93,18 +93,18 @@ async function analyzeFile(file) {
       declared.push("PNG generation parameters (" + t.key + ")"); add(row("bad", "PNG text: " + t.key, "Generation parameters left by an AI image tool: " + v));
     } else add(row("info", "PNG text: " + t.key, v));
   });
-  if (!(exif && Object.keys(exif.tags).length) && !xmp && !texts.length && !c2 && text) add(row("info", "Result", "No embedded metadata found. This is common after sharing through social media or messaging apps, and after generation or editing. It proves nothing by itself."));
+  if (!(exif && Object.keys(exif.tags).length) && !xmp && !texts.length && !c2 && text) add(row("info", "Result", "No embedded metadata found. This is common after sharing through social media or messaging apps, and after generation or editing. It proves nothing by itself. Converting a file (for example PNG to WebP) or exporting a video removes generation settings."));
 
   add(sec("Tool names found inside the file"));
   const hits = scanSigs(text);
-  if (!hits.length) add(row("ok", "AI and editing tool names", "None found."));
+  if (!hits.length) add(row("info", "AI and editing tool names", "None found. This does not mean none were used."));
   hits.forEach(h => add(h.kind === "ai" ? row("warn", "AI tool name: " + h.name, "…" + h.at + "…") : row("info", "Editing software name: " + h.name, "…" + h.at + "… (shows the file passed through this software, not what was changed)")));
 
   const flagged = hits.filter(h => h.kind === "ai").length;
   const top = [sec("Summary")];
   if (declared.length) top.push(row("bad", "AI involvement declared", declared.join("; ")));
   else if (flagged) top.push(row("warn", "Indicators found", flagged + " AI tool name(s) appear in the file. Review the details below."));
-  else top.push(row("ok", "No AI indicators found in the file's data", "Only embedded data was checked. Image and video content were not analysed."));
+  else top.push(row("unk", "No AI provenance data found", "This does not mean the file is real. Many AI-made files carry no metadata, and it is lost when a file is converted (for example PNG to WebP), re-encoded, edited, screenshotted or shared. Only embedded data was checked, not the image or video content."));
   top.push(CAUTION);
   show([...top, ...rows], { file: { name: file.name, size: file.size, type: file.type, formatDetected: kind, fileSystemModified: new Date(file.lastModified).toISOString() }, sha256: sha });
 }
@@ -112,7 +112,7 @@ async function analyzeFile(file) {
 function analyzeText(t) {
   const s = scanText(t), rows = [sec("Summary")];
   const n = s.invisible.length + s.artifacts.length;
-  rows.push(n ? row("warn", "Markers found", n + " marker type(s) found. Review the details below.") : row("ok", "No markers found", "No hidden characters or chatbot artifacts were found."),
+  rows.push(n ? row("warn", "Markers found", n + " marker type(s) found. Review the details below.") : row("unk", "Inconclusive", "No hidden characters or chatbot artifacts were found. That does not show the text was written by a person."),
     row("info", "Important", "These are observable markers only. The tool does not decide whether text was written by AI, and no marker, or lack of one, proves it."),
     sec("Text"), row("info", "Characters and words", `${s.chars.toLocaleString()} characters, ${s.words.toLocaleString()} words`), sec("Hidden characters"));
   if (!s.invisible.length) rows.push(row("ok", "Zero-width and invisible characters", "None found."));
