@@ -113,7 +113,7 @@ const c2paInfo = text => {
   };
 };
 async function parseMp4(read, size) {
-  const out = { brand: "", boxes: [], c2pa: false, created: null, modified: null, seconds: null, moov: null };
+  const out = { brand: "", compat: [], codecs: [], handlers: [], encoder: [], sizes: [], boxes: [], c2pa: false, created: null, modified: null, seconds: null, moov: null };
   let off = 0, n = 0;
   while (off + 8 <= size && n++ < 400) {
     const h = await read(off, 16), dv = new DataView(h.buffer, h.byteOffset, h.byteLength);
@@ -121,7 +121,7 @@ async function parseMp4(read, size) {
     if (len === 1 && h.length >= 16) { len = Number(dv.getBigUint64(8)); hdr = 16; } else if (len === 0) len = size - off;
     if (len < 8) break;
     out.boxes.push(type);
-    if (type === "ftyp") out.brand = str(await read(off + 8, 4));
+    if (type === "ftyp") { const f = await read(off + 8, Math.min(len - 8, 64)); out.brand = str(f, 0, 4); for (let i = 8; i + 4 <= f.length; i += 4) out.compat.push(str(f, i, i + 4)); }
     if (type === "uuid") { const id = await read(off + hdr, 16); if (id[0] === 0xd8 && id[1] === 0xfe && id[2] === 0xc3 && id[3] === 0xd6) out.c2pa = true; }
     if (type === "moov" && len < 64 * 1024 * 1024) out.moov = await read(off, len);
     off += len;
@@ -132,6 +132,15 @@ async function parseMp4(read, size) {
       const p = at + 4, v = m[p], conv = t => (t > 0 ? new Date((Number(t) - 2082844800) * 1000).toISOString() : null);
       if (v === 0) { out.created = conv(dv.getUint32(p + 4)); out.modified = conv(dv.getUint32(p + 8)); out.seconds = dv.getUint32(p + 16) / (dv.getUint32(p + 12) || 1); }
       else { out.created = conv(dv.getBigUint64(p + 4)); out.modified = conv(dv.getBigUint64(p + 12)); out.seconds = Number(dv.getBigUint64(p + 24)) / (dv.getUint32(p + 20) || 1); }
+    }
+  }
+  if (out.moov) {
+    const m = out.moov, mt = str(m), dv = new DataView(m.buffer, m.byteOffset, m.byteLength), uq = re => [...new Set([...mt.matchAll(re)].map(x => x[1].trim()).filter(Boolean))];
+    out.codecs = uq(/(avc1|hvc1|hev1|av01|vp09|mp4v|mp4a|opus|ac-3|ec-3|alac)/g);
+    out.handlers = uq(/hdlr[\s\S]{8}(?:vide|soun|text|sbtl|meta)[\s\S]{12}([\x20-\x7e]{2,80})/g);
+    out.encoder = uq(/\u00A9too[\s\S]{4}data[\s\S]{8}([\x20-\x7e]{3,60})/g);
+    for (let p = mt.indexOf("tkhd"); p >= 0; p = mt.indexOf("tkhd", p + 1)) {
+      try { const v = m[p + 4], w = dv.getUint32(p - 4 + (v ? 96 : 84)) / 65536, h = dv.getUint32(p - 4 + (v ? 100 : 88)) / 65536; if (w && h) out.sizes.push(w + "x" + h); } catch (e) {}
     }
   }
   return out;

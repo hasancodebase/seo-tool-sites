@@ -59,7 +59,9 @@ async function analyzeFile(file) {
     c2 = m.c2pa ? { sourceTypes: [], actions: [], names: [], boxOnly: true } : c2paInfo(text);
     add(sec("Video container"), row("info", "Brand", m.brand || "unknown"), row("info", "Top-level boxes", m.boxes.slice(0, 14).join(", ")),
       row("info", "Creation date stored in file", m.created || "none stored"), row("info", "Modification date stored in file", m.modified || "none stored"),
-      row("info", "Duration", m.seconds ? m.seconds.toFixed(2) + " s" : "unknown"));
+      row("info", "Duration", m.seconds ? m.seconds.toFixed(2) + " s" : "unknown"),
+      row("info", "Compatible brands", m.compat.join(", ") || "none listed"), row("info", "Video size", m.sizes.join(", ") || "not found"),
+      row("info", "Codecs", m.codecs.join(", ") || "not found"), row("info", "Handler names", m.handlers.join("; ") || "none stored"), row("info", "Encoder tag", m.encoder.join("; ") || "none stored"));
     if (m.created && m.modified && m.created !== m.modified) add(row("info", "Dates", "Creation and modification dates differ, so the file may have been saved again."));
   } else if (kind === "mp3") {
     const a = u || new Uint8Array(await file.slice(0, 2e6).arrayBuffer()), id3 = parseId3(a);
