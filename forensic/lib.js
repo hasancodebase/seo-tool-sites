@@ -8,6 +8,7 @@ const sniff = u => {
   if (str(u, 0, 4) === "RIFF" && str(u, 8, 12) === "WEBP") return "webp";
   if (str(u, 0, 3) === "GIF") return "gif";
   if (str(u, 4, 8) === "ftyp") return "mp4";
+  if (str(u, 0, 3) === "ID3" || (u[0] === 0xFF && (u[1] & 0xE0) === 0xE0)) return "mp3";
   return "unknown";
 };
 const SIGS = [
@@ -135,6 +136,31 @@ async function parseMp4(read, size) {
   }
   return out;
 }
+const syncsafe = (u, i) => ((u[i] & 127) << 21) | ((u[i + 1] & 127) << 14) | ((u[i + 2] & 127) << 7) | (u[i + 3] & 127);
+const id3Text = d => {
+  const enc = d[0], b = d.subarray(1);
+  return (enc === 1 || enc === 2 ? new TextDecoder("utf-16le").decode(b) : enc === 3 ? new TextDecoder().decode(b) : str(b)).replace(/^\uFEFF/, "").replace(/\u0000+$/, "").replace(/\u0000/g, ": ");
+};
+const parseId3 = u => {
+  const out = { version: "", frames: [], v1: null };
+  if (str(u, 0, 3) === "ID3") {
+    const ver = u[3], end = Math.min(u.length, 10 + syncsafe(u, 6)), dv = new DataView(u.buffer, u.byteOffset, u.byteLength);
+    out.version = "2." + ver;
+    let i = 10;
+    while (i + 10 <= end) {
+      const id = str(u, i, i + 4);
+      if (!/^[A-Z0-9]{4}$/.test(id)) break;
+      const len = ver === 4 ? syncsafe(u, i + 4) : dv.getUint32(i + 4), d = u.subarray(i + 10, i + 10 + len);
+      let text = "(" + len + " bytes)";
+      if (d.length && id[0] === "T") text = id3Text(d);
+      else if (d.length > 4 && id === "COMM") text = id3Text(new Uint8Array([d[0], ...d.subarray(4)]));
+      out.frames.push({ id, text: text.slice(0, 300) });
+      i += 10 + len;
+    }
+  }
+  if (u.length > 128 && str(u, u.length - 128, u.length - 125) === "TAG") out.v1 = str(u, u.length - 125, u.length - 95).replace(/\0+$/, "").trim();
+  return out;
+};
 const INVIS = { "\u200B": "Zero width space", "\u200C": "Zero width non-joiner", "\u200D": "Zero width joiner", "\u2060": "Word joiner", "\uFEFF": "Zero width no-break space", "\u00AD": "Soft hyphen", "\u200E": "Left-to-right mark", "\u200F": "Right-to-left mark" };
 const ODD_SPACE = { "\u00A0": "No-break space", "\u202F": "Narrow no-break space", "\u2009": "Thin space" };
 const ARTIFACTS = [
@@ -155,4 +181,4 @@ const scanText = t => {
     ttr: words.length ? new Set(words).size / words.length : 0,
   };
 };
-if (typeof module !== "undefined") module.exports = { sniff, scanSigs, parseExif, jpegExif, pngChunks, pngTexts, parseXmp, c2paInfo, parseMp4, scanText, toHex, str };
+if (typeof module !== "undefined") module.exports = { sniff, scanSigs, parseExif, jpegExif, pngChunks, pngTexts, parseXmp, c2paInfo, parseMp4, parseId3, scanText, toHex, str };

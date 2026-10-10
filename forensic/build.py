@@ -8,13 +8,13 @@ OUT = pathlib.Path("dist"); shutil.rmtree(OUT, ignore_errors=True); OUT.mkdir()
 TOOLS = [
  dict(slug="media-provenance-inspector", short="Media inspector", title="Image and Video Metadata and AI Provenance Inspector - Free Online Tool", h1="Media provenance inspector",
   desc="Read the hash, metadata, Content Credentials and AI tool signatures stored inside an image or video. The file never leaves your device.",
-  intro="Choose an image or video. It is analysed in your browser and is never uploaded.", form="file",
+  intro="Choose an image, video or MP3 file. It is analysed in your browser and is never uploaded.", form="file",
   checks=["A SHA-256 hash, to record exactly which file you analysed.", "Camera, software, date and GPS fields (EXIF).", "Editing history and declared source type (XMP).",
           "Content Credentials (C2PA): whether they exist and what they state.", "Generation parameters that some AI image tools write into PNG files, such as Stable Diffusion and ComfyUI.",
-          "Names of AI and editing tools found inside the file.", "Creation and modification dates stored in MP4 and MOV videos."],
+          "Names of AI and editing tools found inside the file.", "Creation and modification dates stored in MP4 and MOV videos.", "ID3 tags in MP3 audio, such as encoder, dates and comments."],
   cannot=["Whether a file with no AI indicators is genuine. Social platforms and messaging apps remove most metadata, and metadata can be edited or forged.",
           "AI-made files whose metadata was lost, for example after converting PNG to WebP, exporting or re-encoding a video, taking a screenshot, or uploading to a platform.", "Which AI tool made a file that carries no provenance data.", "When a file was created, unless a date is stored in it. Stored dates can be changed.",
-          "Whether pixels or frames were altered. This version does not analyse image or video content.", "WebM, MKV, AVI and other formats, beyond a file hash."],
+          "Whether pixels or frames were altered. This version does not analyse image or video content.", "Anything about the sound or pictures themselves, such as cloned voices or synthetic video, and invisible watermarks such as Google SynthID. WebM, MKV, AVI, WAV and other formats get only a file hash."],
   faq=[("Is my file uploaded?", "No. The analysis runs in your browser. You can check this by going offline after the page loads and running it again."),
        ("Can I use the result as evidence?", "Treat it as a lead. For formal or court use, keep the original file unchanged, record its hash, and ask an accredited forensic examiner."),
        ("Why is there no AI percentage score?", "Scores from detectors can be wrong in both directions. This tool reports only what can be read from the file itself.")]),
@@ -43,7 +43,7 @@ def page(title, desc, path, body, scripts=True):
 
 def lst(a): return "<ul>" + "".join(f"<li>{x}</li>" for x in a) + "</ul>"
 for t in TOOLS:
-    form = ('<form id="ff" class="stack"><label for="file">Image or video file</label><input id="file" type="file" accept="image/*,video/*,.mp4,.mov,.m4v"><button>Analyse file</button></form>'
+    form = ('<form id="ff" class="stack"><label for="file">Image, video or audio file</label><input id="file" type="file" accept="image/*,video/*,audio/*,.mp4,.mov,.m4v,.mp3"><button>Analyse file</button></form>'
             if t["form"] == "file" else
             '<form id="tf" class="stack"><label for="t">Text to scan</label><textarea id="t" placeholder="Paste text here"></textarea><button>Scan text</button></form>')
     body = f'''<h1>{t["h1"]}</h1><p class="lead">{t["intro"]}</p>

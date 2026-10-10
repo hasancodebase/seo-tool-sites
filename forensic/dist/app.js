@@ -30,7 +30,7 @@ async function analyzeFile(file) {
   const rows = [], add = (...x) => rows.push(...x), declared = [];
   const head = new Uint8Array(await file.slice(0, 16).arrayBuffer()), kind = sniff(head);
   const ext = (file.name.split(".").pop() || "").toLowerCase();
-  const extKind = { jpg: "jpeg", jpeg: "jpeg", png: "png", webp: "webp", gif: "gif", mp4: "mp4", mov: "mp4", m4v: "mp4" }[ext];
+  const extKind = { jpg: "jpeg", jpeg: "jpeg", png: "png", webp: "webp", gif: "gif", mp4: "mp4", mov: "mp4", m4v: "mp4", mp3: "mp3" }[ext];
   add(sec("File"), row("info", "Name", file.name), row("info", "Size", file.size.toLocaleString() + " bytes"),
     row("info", "Format (from file signature)", kind === "unknown" ? "Not recognised" : kind.toUpperCase()),
     row("info", "File system date of this copy", new Date(file.lastModified).toISOString() + " (not necessarily the original creation date)"));
@@ -61,7 +61,16 @@ async function analyzeFile(file) {
       row("info", "Creation date stored in file", m.created || "none stored"), row("info", "Modification date stored in file", m.modified || "none stored"),
       row("info", "Duration", m.seconds ? m.seconds.toFixed(2) + " s" : "unknown"));
     if (m.created && m.modified && m.created !== m.modified) add(row("info", "Dates", "Creation and modification dates differ, so the file may have been saved again."));
-  } else add(row("warn", "Format", "This version analyses JPEG, PNG, WebP, GIF, MP4 and MOV. Only the file hash was computed."));
+  } else if (kind === "mp3") {
+    const a = u || new Uint8Array(await file.slice(0, 2e6).arrayBuffer()), id3 = parseId3(a);
+    text = str(a, 0, Math.min(a.length, 30e6)); c2 = c2paInfo(text);
+    add(sec("Audio tags (ID3)"));
+    if (id3.version) add(row("info", "ID3 version", id3.version));
+    id3.frames.forEach(f => add(row("info", "ID3 " + f.id, f.text)));
+    if (id3.v1) add(row("info", "ID3v1 title", id3.v1));
+    if (!id3.version && !id3.v1) add(row("info", "ID3 tags", "None found."));
+    add(row("info", "Audio content", "The sound itself was not analysed. AI voices and music are usually not marked inside the file."));
+  } else add(row("warn", "Format", "This version analyses JPEG, PNG, WebP, GIF, MP4, MOV and MP3. Only the file hash was computed."));
 
   add(sec("Provenance (Content Credentials, C2PA)"));
   if (c2) {
@@ -93,7 +102,7 @@ async function analyzeFile(file) {
       declared.push("PNG generation parameters (" + t.key + ")"); add(row("bad", "PNG text: " + t.key, "Generation parameters left by an AI image tool: " + v));
     } else add(row("info", "PNG text: " + t.key, v));
   });
-  if (!(exif && Object.keys(exif.tags).length) && !xmp && !texts.length && !c2 && text) add(row("info", "Result", "No embedded metadata found. This is common after sharing through social media or messaging apps, and after generation or editing. It proves nothing by itself. Converting a file (for example PNG to WebP) or exporting a video removes generation settings."));
+  if (kind !== "mp3" && !(exif && Object.keys(exif.tags).length) && !xmp && !texts.length && !c2 && text) add(row("info", "Result", "No embedded metadata found. This is common after sharing through social media or messaging apps, and after generation or editing. It proves nothing by itself. Converting a file (for example PNG to WebP) or exporting a video removes generation settings."));
 
   add(sec("Tool names found inside the file"));
   const hits = scanSigs(text);
