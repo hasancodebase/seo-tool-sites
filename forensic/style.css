@@ -38,3 +38,14 @@ input[type=file]{width:100%;padding:14px;border:2px dashed var(--ink);background
 .actions{margin-top:18px}.actions button{margin-right:8px}
 @media print{header,form,.actions,footer,.noprint{display:none}body{background:#fff}}
 .row.unk{border-color:var(--soft)}.row.unk b{color:var(--soft)}
+.verdict{padding:22px 24px;margin:24px 0 8px;background:#fff;border-left:10px solid var(--soft)}
+.verdict h2{font:700 1.9rem/1.2 Georgia,serif;margin:0 0 8px;text-transform:uppercase}
+.verdict p.big{font-size:1.25rem;font-weight:600;margin:0 0 12px}
+.verdict.ai{background:#fdecea;border-color:var(--bad)}.verdict.ai h2{color:var(--bad)}
+.verdict.maybe{background:#fff4e0;border-color:var(--warn)}.verdict.maybe h2{color:var(--warn)}
+.verdict.unk h2{color:var(--ink)}
+.verdict ul,.verdict ol{padding-left:22px;font-size:1.05rem}
+.facts{display:grid;grid-template-columns:210px 1fr;gap:6px 16px;margin:8px 0 12px;font-size:1.05rem}
+.facts dt{font-weight:700}.facts dd{margin:0;overflow-wrap:anywhere}
+.verdict p.small{font-size:.9rem;color:var(--soft);margin:14px 0 0}
+@media(max-width:520px){.facts{grid-template-columns:1fr}}
