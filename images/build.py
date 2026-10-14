@@ -47,6 +47,7 @@ def page(title, desc, path, body, script=True):
     js = '<script src="/lib.js" defer></script><script src="/app.js" defer></script>' if script else ""
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google-site-verification" content="JARo9iKbe9vjR2gKSiOTNG7SJquxuAxdTHmrpQ-QSsc" />
 <title>{title}</title><meta name="description" content="{desc}"><link rel="canonical" href="{SITE}{path}">
 <link rel="stylesheet" href="/style.css"></head><body>
 <header><a class="brand" href="/">{NAME}</a><nav>{nav}</nav></header>
