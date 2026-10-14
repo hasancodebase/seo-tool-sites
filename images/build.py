@@ -1,7 +1,7 @@
-"""Builds the site into dist/.  Usage: python3 build.py https://YOUR-PROJECT.pages.dev"""
+﻿"""Builds the site into dist/.  Usage: python3 build.py https://YOUR-PROJECT.pages.dev"""
 import sys, shutil, pathlib
 SITE = (sys.argv[1] if len(sys.argv) > 1 else "https://productphototools.pages.dev").rstrip("/")
-NAME = "Product Photo Tools"
+NAME = "Free Image Converter"
 CONTACT = ""   # your email address, shown on the About page. Leave empty to hide.
 OUT = pathlib.Path("dist"); shutil.rmtree(OUT, ignore_errors=True); OUT.mkdir()
 PRIV = "Your images are processed on your device and are never uploaded."
